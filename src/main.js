@@ -17,9 +17,8 @@ document.body.appendChild(renderer.domElement)
 
 const params = {
     threshold: 0,
-    strength: 0.4,
-    radius: 1,
-    exposure: 1
+    strength: 0.20,
+    radius: 0,
 };
 
 const renderScene = new RenderPass(scene, camera);
@@ -27,7 +26,6 @@ const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, windo
 bloomPass.threshold = params.threshold;
 bloomPass.strength = params.strength;
 bloomPass.radius = params.radius;
-
 const outputPass = new OutputPass();
 
 const composer = new EffectComposer(renderer);
@@ -39,32 +37,34 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
+    composer.setSize(window.innerWidth, window.innerHeight)
 })
 
 const controls = new OrbitControls(camera, renderer.domElement)
 camera.position.y = 100
-camera.position.x = 120
+camera.position.x = 130
 
-const nbOfStars = 2000
+const nbOfStars = 5000
 
 const galaxy = generateGalaxy(nbOfStars)
 scene.add(galaxy.galaxyMesh)
+// scene.add(galaxy.debugObject)
 
+// const helper = new THREE.AxesHelper(100)
+// scene.add(helper)
+// updateGalaxy(galaxy, 1)
 
-let last = performance.now()
-updateGalaxy(galaxy, 1)
+const clock = new THREE.Clock()
+
 function animate() {
-    let timeSinceLastCalled = performance.now() - last;
-    timeSinceLastCalled = 1
-    requestAnimationFrame(animate)
-
+    let timeSinceLastCalled = clock.getDelta()
     updateGalaxy(galaxy, timeSinceLastCalled)
 
     stats.update()
     controls.update()
 
     composer.render();
-    renderer.render(scene, camera)
-    last = performance.now()
+    // renderer.render(scene, camera)
+    requestAnimationFrame(animate)
 }
 animate()
