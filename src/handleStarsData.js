@@ -123,6 +123,7 @@ function determineSizeAndCenterOfTree(starsPositions, nbOfStars) {
 
 // let debugObject
 function updateBarnesHut(galaxy, timestep) {
+    theta = galaxy.galaxyParameter.theta
     G = galaxy.galaxyParameter.G
     // timestep *= 0.02
 
