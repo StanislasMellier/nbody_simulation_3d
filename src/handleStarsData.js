@@ -4,7 +4,7 @@ import * as THREE from 'three'
 let maxCurrentVelLength = 0
 let G = 1
 let softeningFactor = 20
-let theta = 0.8
+let theta = 0.5
 
 function generateStarsPositions(nbOfPoints, diameter, thickness, isFirstPointCentered) {
     const points = []
@@ -41,7 +41,7 @@ function computeForceWithAnotherBody(body, otherBody) {
 }
 
 function updateDirectSum(galaxy, timestep) {
-    timestep *= 0.02
+    // timestep *= 0.02
 
 
     const { starsPositions, starsMass, starsVelocities } = galaxy
@@ -97,30 +97,17 @@ function updateDirectSum(galaxy, timestep) {
     galaxy.galaxyMesh.geometry.setAttribute('velocity', new THREE.Float32BufferAttribute(starsVelocities, 3))
     galaxy.galaxyMesh.material.uniforms.maxCurrentVelLength.value = maxCurrentVelLength
 }
-let debugObject
-let root
 
-function updateBarnesHut(galaxy, timestep) {
-    // timestep *= 0.02
-
-    const { starsPositions, starsMass, starsVelocities } = galaxy
-    debugObject = galaxy.debugObject
-
-
+function determineSizeAndCenterOfTree(starsPositions, nbOfStars) {
     let min = new THREE.Vector3(starsPositions[0], starsPositions[1], starsPositions[2]);
     let max = new THREE.Vector3(starsPositions[0], starsPositions[1], starsPositions[2]);
-
-    for (let i = 0; i < starsMass.length; i++) {
-        let x = starsPositions[i * 3]
-        let y = starsPositions[i * 3 + 1]
-        let z = starsPositions[i * 3 + 2]
-
-        min.x = Math.min(min.x, x)
-        min.y = Math.min(min.y, y)
-        min.z = Math.min(min.z, z)
-        max.x = Math.max(max.x, x)
-        max.y = Math.max(max.y, y)
-        max.z = Math.max(max.z, z)
+    for (let i = 0; i < nbOfStars; i++) {
+        min.x = Math.min(min.x, starsPositions[i * 3])
+        min.y = Math.min(min.y, starsPositions[i * 3 + 1])
+        min.z = Math.min(min.z, starsPositions[i * 3 + 2])
+        max.x = Math.max(max.x, starsPositions[i * 3])
+        max.y = Math.max(max.y, starsPositions[i * 3 + 1])
+        max.z = Math.max(max.z, starsPositions[i * 3 + 2])
     }
     let w = max.x - min.x;
     let h = max.y - min.y;
@@ -131,8 +118,21 @@ function updateBarnesHut(galaxy, timestep) {
         min.y + h / 2,
         min.z + d / 2
     ];
+    return { size, treeCenter }
+}
 
-    root = new node(treeCenter, size, 'yellow')
+// let debugObject
+function updateBarnesHut(galaxy, timestep) {
+    G = galaxy.galaxyParameter.G
+    // timestep *= 0.02
+
+    const { starsPositions, starsMass, starsVelocities } = galaxy
+    // debugObject = galaxy.debugObject
+
+    let { size, treeCenter } = determineSizeAndCenterOfTree(starsPositions, starsMass.length)
+
+
+    let root = new node(treeCenter, size, 'yellow')
 
     for (let i = 0; i < starsMass.length; i++) {
         let body = {
@@ -144,7 +144,9 @@ function updateBarnesHut(galaxy, timestep) {
     }
     root.computeCenterOfMass()
 
-    for (let i = 1; i < starsMass.length; i++) {
+    let firstIndex = 0
+    if (galaxy.galaxyParameter.isFirstPointCentered) firstIndex = 1
+    for (let i = firstIndex; i < starsMass.length; i++) {
         let body = {
             index: i,
             mass: starsMass[i],
@@ -174,7 +176,7 @@ function updateBarnesHut(galaxy, timestep) {
 
 let nodeId = 0
 class node {
-    constructor([x, y, z], size, color) {
+    constructor([x, y, z], size) {
         this.id = nodeId++
         this.pos = [x, y, z];
         this.centerOfMass = [0, 0, 0];

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-
+import * as dat from 'dat.gui';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { generateGalaxy, updateGalaxy } from './handleGalaxy'
@@ -15,7 +15,7 @@ renderer.shadowMap.enabled = true
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-const params = {
+const BloomParams = {
     threshold: 0,
     strength: 0.20,
     radius: 0,
@@ -23,9 +23,9 @@ const params = {
 
 const renderScene = new RenderPass(scene, camera);
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-bloomPass.threshold = params.threshold;
-bloomPass.strength = params.strength;
-bloomPass.radius = params.radius;
+bloomPass.threshold = BloomParams.threshold;
+bloomPass.strength = BloomParams.strength;
+bloomPass.radius = BloomParams.radius;
 const outputPass = new OutputPass();
 
 const composer = new EffectComposer(renderer);
@@ -44,21 +44,48 @@ const controls = new OrbitControls(camera, renderer.domElement)
 camera.position.y = 100
 camera.position.x = 130
 
-const nbOfStars = 5000
 
-const galaxy = generateGalaxy(nbOfStars)
+let galaxyParameter = {
+    nbOfStars: 2000,
+    diameter: 100,
+    thickness: 10,
+    isFirstPointCentered: true,
+    firstPointMassMultiplier: 100,
+    galaxyStartingRotation: 30,
+    G: 1,
+    softeningFactor: 20,
+    theta: 0.5,
+    reset: () => {
+        galaxy.galaxyMesh.removeFromParent()
+        galaxy = generateGalaxy(galaxyParameter)
+        scene.add(galaxy.galaxyMesh)
+    }
+}
+
+let galaxy = generateGalaxy(galaxyParameter)
 scene.add(galaxy.galaxyMesh)
-// scene.add(galaxy.debugObject)
 
-// const helper = new THREE.AxesHelper(100)
-// scene.add(helper)
-// updateGalaxy(galaxy, 1)
+let GUI = new dat.GUI()
+
+let nbStartGUI = GUI.add(galaxyParameter, 'nbOfStars', 1, 5000)
+console.log(nbStartGUI);
+GUI.add(galaxyParameter, 'diameter', 1, 100)
+GUI.add(galaxyParameter, 'thickness', 1, 100)
+GUI.add(galaxyParameter, 'isFirstPointCentered')
+GUI.add(galaxyParameter, 'firstPointMassMultiplier', 1, galaxyParameter.nbOfStars)
+GUI.add(galaxyParameter, 'galaxyStartingRotation', 0, 100)
+GUI.add(galaxyParameter, 'reset', 'test')
+
+
+GUI.add(galaxyParameter, 'softeningFactor', 0, 100)
+GUI.add(galaxyParameter, 'G', 0, 100)
+GUI.add(galaxyParameter, 'theta', 0, 1)
+
 
 const clock = new THREE.Clock()
-
 function animate() {
     let timeSinceLastCalled = clock.getDelta()
-    updateGalaxy(galaxy, timeSinceLastCalled)
+    updateGalaxy(galaxy, 'barnesHut', timeSinceLastCalled)
 
     stats.update()
     controls.update()

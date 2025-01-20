@@ -1,4 +1,4 @@
-// stolen from https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/
+// taken from https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/
 function getRandomPointInSphere(u, v) {
     var u = Math.random();
     var v = v || Math.random();

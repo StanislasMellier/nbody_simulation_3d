@@ -2,20 +2,30 @@ import * as THREE from 'three'
 import { generateStarsPositions, updateBarnesHut, updateDirectSum } from './handleStarsData';
 import { rotatePoint } from './utils';
 
-function generateGalaxy(nbOfStars) {
-    let d = 100
-    const starsPositions = generateStarsPositions(nbOfStars, d, d / 10, true);
-    const starsMass = [...Array(nbOfStars)].map(() => 1);
-    starsMass[0] = nbOfStars * 0.1
+function generateGalaxy(galaxyParameter) {
+    let {
+        nbOfStars,
+        diameter,
+        thickness,
+        isFirstPointCentered,
+        firstPointMassMultiplier,
+        galaxyStartingRotation
+    } = galaxyParameter
+    let starMass = 1;
+    nbOfStars = Math.floor(nbOfStars);
+    const starsPositions = generateStarsPositions(nbOfStars, diameter, thickness, isFirstPointCentered);
+    console.log(nbOfStars);
+    const starsMass = [...Array(nbOfStars)].map(() => starMass);
+    starsMass[0] = starMass * firstPointMassMultiplier;
     const starsVelocities = [...Array(nbOfStars * 3)].map(() => 0);
 
     for (let i = 0; i < starsMass.length; i++) {
         let index = i * 3
         const rotatedPoint = rotatePoint(starsPositions[index], starsPositions[index + 2], 0, 0, 1)
-        let vel = 50
-        starsVelocities[index] = (starsPositions[index] - rotatedPoint.x) * vel
+
+        starsVelocities[index] = (starsPositions[index] - rotatedPoint.x) * galaxyStartingRotation
         starsVelocities[index + 1] = 0
-        starsVelocities[index + 2] = (starsPositions[index + 2] - rotatedPoint.y) * vel
+        starsVelocities[index + 2] = (starsPositions[index + 2] - rotatedPoint.y) * galaxyStartingRotation
     }
 
     const galaxyGeometry = new THREE.BufferGeometry()
@@ -50,13 +60,19 @@ function generateGalaxy(nbOfStars) {
     })
 
     const galaxyMesh = new THREE.Points(galaxyGeometry, galaxyMaterial);
-    return { galaxyMesh, starsPositions, starsMass, starsVelocities, debugObject: new THREE.Object3D() };
+    return { galaxyParameter, galaxyMesh, starsPositions, starsMass, starsVelocities, debugObject: new THREE.Object3D() };
 }
 
-function updateGalaxy(galaxy, timestep) {
+function updateGalaxy(galaxy, updateType, timestep) {
 
-    // updateDirectSum(galaxy, timestep)
-    updateBarnesHut(galaxy, timestep)
+    switch (updateType) {
+        case 'directSum':
+            updateDirectSum(galaxy, timestep)
+            break;
+        case 'barnesHut':
+            updateBarnesHut(galaxy, timestep)
+            break;
+    }
 }
 
 
