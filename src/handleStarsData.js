@@ -163,7 +163,7 @@ function updateBarnesHut(galaxy, timestep) {
         starsPositions[i * 3 + 1] += starsVelocities[i * 3 + 1] * timestep
         starsPositions[i * 3 + 2] += starsVelocities[i * 3 + 2] * timestep
 
-        let velL = Math.abs(starsVelocities[i * 3]) + Math.abs(starsVelocities[i * 3 + 1]) + Math.abs(starsVelocities[i * 3 + 2])
+        let velL = Math.sqrt(starsVelocities[i * 3] ** 2 + starsVelocities[i * 3 + 1] ** 2 + starsVelocities[i * 3 + 2] ** 2)
         if (velL > maxCurrentVelLength) {
             maxCurrentVelLength = velL
         }

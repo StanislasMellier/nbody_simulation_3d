@@ -16,9 +16,10 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const BloomParams = {
-    threshold: 0,
-    strength: 0.20,
-    radius: 0,
+    enabled: true,
+    threshold: 0.07,
+    strength: 0.30,
+    radius: 0.5,
 };
 
 const renderScene = new RenderPass(scene, camera);
@@ -46,12 +47,12 @@ camera.position.x = 130
 
 
 let galaxyParameter = {
-    nbOfStars: 2000,
+    nbOfStars: 2500,
     diameter: 100,
     thickness: 10,
     isFirstPointCentered: true,
     firstPointMassMultiplier: 100,
-    galaxyStartingRotation: 30,
+    startingRotation: 30,
     G: 1,
     softeningFactor: 20,
     theta: 0.5,
@@ -67,13 +68,12 @@ scene.add(galaxy.galaxyMesh)
 
 let GUI = new dat.GUI()
 
-let nbStartGUI = GUI.add(galaxyParameter, 'nbOfStars', 1, 5000)
-console.log(nbStartGUI);
+GUI.add(galaxyParameter, 'nbOfStars', 1, 5000)
 GUI.add(galaxyParameter, 'diameter', 1, 100)
 GUI.add(galaxyParameter, 'thickness', 1, 100)
 GUI.add(galaxyParameter, 'isFirstPointCentered')
 GUI.add(galaxyParameter, 'firstPointMassMultiplier', 1, galaxyParameter.nbOfStars)
-GUI.add(galaxyParameter, 'galaxyStartingRotation', 0, 100)
+GUI.add(galaxyParameter, 'startingRotation', 0, 100)
 GUI.add(galaxyParameter, 'reset', 'test')
 
 
@@ -81,17 +81,33 @@ GUI.add(galaxyParameter, 'softeningFactor', 0, 100)
 GUI.add(galaxyParameter, 'G', 0, 100)
 GUI.add(galaxyParameter, 'theta', 0, 1)
 
+let bloomFolder = GUI.addFolder('Bloom')
+bloomFolder.open()
+bloomFolder.add(BloomParams, 'enabled')
+bloomFolder.add(BloomParams, 'threshold', 0.0, 1.0).onChange(function (value) {
+    bloomPass.threshold = value;
+});
+bloomFolder.add(BloomParams, 'strength', 0.0, 1.0).onChange(function (value) {
+    bloomPass.strength = value;
+});
+bloomFolder.add(BloomParams, 'radius', 0.0, 1.0).onChange(function (value) {
+    bloomPass.radius = value;
+});
 
 const clock = new THREE.Clock()
 function animate() {
     let timeSinceLastCalled = clock.getDelta()
+
     updateGalaxy(galaxy, 'barnesHut', timeSinceLastCalled)
 
     stats.update()
     controls.update()
 
-    composer.render();
-    // renderer.render(scene, camera)
+    if (BloomParams.enabled) {
+        composer.render();
+    } else {
+        renderer.render(scene, camera)
+    }
     requestAnimationFrame(animate)
 }
 animate()

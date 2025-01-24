@@ -9,12 +9,11 @@ function generateGalaxy(galaxyParameter) {
         thickness,
         isFirstPointCentered,
         firstPointMassMultiplier,
-        galaxyStartingRotation
+        startingRotation
     } = galaxyParameter
     let starMass = 1;
     nbOfStars = Math.floor(nbOfStars);
     const starsPositions = generateStarsPositions(nbOfStars, diameter, thickness, isFirstPointCentered);
-    console.log(nbOfStars);
     const starsMass = [...Array(nbOfStars)].map(() => starMass);
     starsMass[0] = starMass * firstPointMassMultiplier;
     const starsVelocities = [...Array(nbOfStars * 3)].map(() => 0);
@@ -23,9 +22,9 @@ function generateGalaxy(galaxyParameter) {
         let index = i * 3
         const rotatedPoint = rotatePoint(starsPositions[index], starsPositions[index + 2], 0, 0, 1)
 
-        starsVelocities[index] = (starsPositions[index] - rotatedPoint.x) * galaxyStartingRotation
+        starsVelocities[index] = (starsPositions[index] - rotatedPoint.x) * startingRotation
         starsVelocities[index + 1] = 0
-        starsVelocities[index + 2] = (starsPositions[index + 2] - rotatedPoint.y) * galaxyStartingRotation
+        starsVelocities[index + 2] = (starsPositions[index + 2] - rotatedPoint.y) * startingRotation
     }
 
     const galaxyGeometry = new THREE.BufferGeometry()
@@ -46,7 +45,7 @@ function generateGalaxy(galaxyParameter) {
     varying vec3 vColor;
     uniform float maxCurrentVelLength;
     void main() {
-        float l = abs(vColor.x)+abs(vColor.y)+abs(vColor.z);
+        float l = length(vColor);
         l = l / maxCurrentVelLength;
         gl_FragColor = vec4(1.0-l, 1.0-l, l, 1.0 );
     }`
