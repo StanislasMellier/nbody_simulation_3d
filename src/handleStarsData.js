@@ -1,17 +1,26 @@
 import { getRandomPointClustered, getRandomPointInSphere, rotatePoint } from './utils'
 import * as THREE from 'three'
 
-let maxCurrentVelLength = 0
-let G = 1
-let softeningFactor = 20
-let theta = 0.5
+let maxCurrentVelLength = 0;
+let G = 1;
+let softeningFactor = 20;
+let theta = 0.5;
 
-function generateStarsPositions(nbOfPoints, diameter, thickness, isFirstPointCentered) {
-    const points = []
+function generateStarsPositions(nbOfPoints, diameter, thickness, isFirstPointCentered, spawnDistribution) {
+    const points = [];
 
     for (let i = 0; i < nbOfPoints; i++) {
-        // const point = getRandomPointInSphere()
-        const point = getRandomPointClustered()
+        let point;
+        switch (spawnDistribution) {
+            case 'homogeneous':
+                point = getRandomPointInSphere();
+                break;
+            case 'clustered':
+                point = getRandomPointClustered();
+                break;
+            default:
+                break;
+        }
         points.push(point.x * diameter, point.y * thickness, point.z * diameter)
     }
 
@@ -41,9 +50,6 @@ function computeForceWithAnotherBody(body, otherBody) {
 }
 
 function updateDirectSum(galaxy, timestep) {
-    // timestep *= 0.02
-
-
     const { starsPositions, starsMass, starsVelocities } = galaxy
     for (let i = 1; i < starsMass.length; i++) {
         let acceleration = {
@@ -125,7 +131,6 @@ function determineSizeAndCenterOfTree(starsPositions, nbOfStars) {
 function updateBarnesHut(galaxy, timestep) {
     theta = galaxy.galaxyParameter.theta
     G = galaxy.galaxyParameter.G
-    // timestep *= 0.02
 
     const { starsPositions, starsMass, starsVelocities } = galaxy
     // debugObject = galaxy.debugObject
